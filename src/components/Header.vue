@@ -1,15 +1,12 @@
-<script setup>
-</script>
-
 <template>
   <nav class="header">
     <ul class="header__list">
       <li class="header__item">
-        <router-link to="/menu">Menu</router-link>
+        <router-link :to="{ name: 'menu' }">Menu</router-link>
       </li>
 
       <li class="header__item">
-        <router-link to="/koszyk">Koszyk</router-link>
+        <router-link :to="{ name: 'cart' }">Cart</router-link>
       </li>
     </ul>
 
@@ -21,11 +18,11 @@
 
     <ul class="header__list">
       <li class="header__item">
-        <router-link to="/onas">O nas</router-link>
+        <router-link :to="{ name: 'us' }">Us</router-link>
       </li>
 
       <li class="header__item">
-        <router-link to="/kontakt">Kontakt</router-link>
+        <router-link :to="{ name: 'contact' }">Contact</router-link>
       </li>
     </ul>
   </nav>

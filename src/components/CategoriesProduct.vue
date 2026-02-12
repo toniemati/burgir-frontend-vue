@@ -1,5 +1,5 @@
 <template>
-  <router-link :to="`/product/details/${product.id}`" class="product">
+  <router-link :to="{ name: 'productDetails', params: { id: product.id } }" class="product">
     <div class="product__left">
       <img :src="props.product.img" :alt="props.product.name" />
     </div>
@@ -8,21 +8,21 @@
       <div class="right__name">{{ props.product.name }}</div>
 
       <div class="right__desc">
-        {{ props.product.description.length <=70 
-          ? props.product.description 
-          : props.product.description.substr(0, 70) + '...' }}
+        {{
+          props.product.description.length <= 70 ? props.product.description : props.product.description.substr(0,
+            70) + '...' }} 
+            </div>
       </div>
-    </div>
 
-    <button @click="addToCart" class="product__addButton">
-      🛒 {{ props.product.price }}
-    </button>
+      <button @click="addToCart" class="product__addButton">
+        🛒 {{ props.product.price }}
+      </button>
   </router-link>
 </template>
 
 <script setup>
-import { useStore } from "vuex";
-import { defineProps } from "vue";
+import { defineProps } from "vue"
+import { useStore } from "vuex"
 
 const store = useStore();
 
@@ -44,6 +44,7 @@ const addToCart = (e) => {
   color: #eee;
   text-decoration: none;
 }
+
 .product:hover .product__right .right__name {
   color: #f59705;
 }
@@ -87,7 +88,6 @@ const addToCart = (e) => {
   border-radius: 5px;
   padding: 5px 10px;
   background: #f59705;
-  opacity: 0.75;
   color: #eee;
   font-weight: bold;
   cursor: pointer;

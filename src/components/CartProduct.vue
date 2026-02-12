@@ -1,58 +1,51 @@
 <template>
-  <div class="product">
+  <div v-if="product?.id" class="product">
     <div class="product__left">
       <img :src="product.img" :alt="product.name" />
     </div>
 
     <div class="product__right">
       <div class="content__name">
-        <router-link :to="'/product/details/' + product.id">
+        <router-link :to="{ name: 'productDetails', params: { id: product.id } }">
           {{ product.name }}
         </router-link>
       </div>
 
-      <div class="content__price">{{ product.price }}zł</div>
+      <div class="content__price">${{ product.price }}</div>
 
       <div class="content__quantity">
-        <button
-          @click="changeQuantity(props.product.quantity - 1)"
-          class="quantity__button"
-        >
+        <button @click="changeQuantity(props.quantity - 1)" class="quantity__button">
           -
         </button>
 
-        <div class="quantity__value">{{ props.product.quantity }}</div>
+        <div class="quantity__value">{{ props.quantity }}</div>
 
-        <button
-          @click="changeQuantity(props.product.quantity + 1)"
-          class="quantity__button"
-        >
+        <button @click="changeQuantity(props.quantity + 1)" class="quantity__button">
           +
         </button>
       </div>
 
       <div class="content__sumPrice">
-        {{ (product.price * props.product.quantity).toLocaleString(2) }}zł
+        ${{ (product.price * props.quantity).toLocaleString(2) }}
       </div>
 
-      <button @click="deleteProduct" class="content__removeButton">Usuń</button>
+      <button @click="deleteProduct" class="content__removeButton">Remove</button>
     </div>
   </div>
 </template>
 
 <script setup>
-import { useStore } from "vuex";
-import { defineProps, onMounted, ref } from "vue";
-// import axios from "axios";
+import { defineProps, onMounted, ref } from "vue"
+import { useStore } from "vuex"
 
 const store = useStore();
+const product = ref({});
 
 const props = defineProps({
-  product: Object,
-  list: Array,
+  productId: Number,
+  quantity: Number,
+  products: Object,
 });
-
-const product = ref({});
 
 const changeQuantity = (num) => {
   if (num < 1) return deleteProduct();
@@ -68,7 +61,7 @@ const deleteProduct = () => {
 };
 
 const setProduct = () => {
-  product.value = props.list.find((p) => p.id === props.product.product_id);
+  product.value = props.products.find((p) => p.id === props.productId);
 };
 
 onMounted(() => {
@@ -131,6 +124,7 @@ onMounted(() => {
   justify-content: center;
   align-items: center;
 }
+
 .quantity__button {
   cursor: pointer;
   outline: none;
@@ -162,7 +156,6 @@ onMounted(() => {
   border-radius: 5px;
   padding: 5px 10px;
   background: #f59705;
-  opacity: 0.75;
   color: #eee;
   font-weight: bold;
   cursor: pointer;

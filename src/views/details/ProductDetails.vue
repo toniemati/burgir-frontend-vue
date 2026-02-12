@@ -1,5 +1,5 @@
 <template>
-  <div v-if="product.id" class="product">
+  <Page v-if="product.id">
     <div class="product__up">
       <div class="up__left">
         {{ product.name }}
@@ -20,24 +20,20 @@
       <h3 class="down__header">Składniki:</h3>
 
       <div class="down__list">
-        <div
-          v-for="ingredient in product.ingredients"
-          :key="ingredient.id"
-          class="down__item"
-        >
+        <div v-for="ingredient in product.ingredients" :key="ingredient.id" class="down__item">
           {{ ingredient.name }}
           <span class="item__description">({{ ingredient.description }})</span>
         </div>
       </div>
     </div>
-  </div>
+  </Page>
 </template>
 
 <script setup>
-import { API_URL } from "@/config";
-import axios from "axios";
-import { onMounted, ref } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import Page from '@/components/Page.vue'
+import { ApiRequest } from "@/config"
+import { onMounted, ref } from "vue"
+import { useRoute, useRouter } from "vue-router"
 
 const route = useRoute();
 const router = useRouter();
@@ -45,17 +41,19 @@ const router = useRouter();
 const product = ref({});
 
 const getProduct = async () => {
-  const response = await axios.get(`${API_URL}product/${route.params.id}`);
-  const { data } = await response;
-
-  if (!data.id) return router.back();
-
-  product.value = data;
+  try {
+    const { data } = await ApiRequest.get(`products/${route.params.id}`);
+    if (!data.id) return router.back();
+    product.value = data;
+  } catch (error) {
+    console.error(error)
+    alert(error.message)
+  }
 };
 
 onMounted(() => {
   if (!route.params.id || isNaN(route.params.id)) {
-    alert(`Nie znaleziono produktu o id: ${route.params.id}`);
+    alert(`Not found product with id: ${route.params.id}`);
     return router.push("/");
   }
 
@@ -64,18 +62,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.product {
-  display: flex;
-  flex-direction: column;
-  row-gap: 20px;
-}
-
-@media only screen and (min-width: 768px) {
-  .product {
-    margin: 0 20px;
-  }
-}
-
 .product__up {
   display: flex;
   flex-direction: column;

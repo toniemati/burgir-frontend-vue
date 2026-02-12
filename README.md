@@ -1,24 +1,18 @@
-# burgir
+# burgir frontend vue
 
 ## Project setup
+
+### Install dependencies:
 ```
 npm install
 ```
 
-### Compiles and hot-reloads for development
+### Change **API_URL** in
+```
+src/config.js
+```
+
+### Run project in development mode
 ```
 npm run serve
 ```
-
-### Compiles and minifies for production
-```
-npm run build
-```
-
-### Lints and fixes files
-```
-npm run lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).

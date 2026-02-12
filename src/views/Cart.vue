@@ -1,21 +1,26 @@
 <template>
-  <div class="koszyk">
-    <h1 class="koszyk__header">Koszyk</h1>
+  <Page>
+    <Header1>Cart</Header1>
 
-    <h3 class="koszyk__subHeader">Twoje zakupy</h3>
+    <SubHeader>Your products</SubHeader>
 
-    <button v-if="koszyk.products.length >= 1" @click="goModalVisible" class="koszyk__zamowButton">
-      Zamów i zapłać
-    </button>
+    <template v-if="cart.products.length > 0 && products.length">
+      <button v-if="cart.products.length >= 1" @click="setModalVisible" class="cart__zamowButton">
+        Pay and order
+      </button>
 
-    <router-link v-else to="/menu" class="koszyk__menuLink">
-      Jak chcesz coś zjeść to dodaj to najpierw do koszyka :)
-    </router-link>
+      <div class="cart__content">
+        <CartProduct v-for="product in cart.products" :key="product.product_id" :productId="product.product_id"
+          :quantity="product.quantity" :products="products" />
+      </div>
+    </template>
 
-    <div v-if="products.length" class="koszyk__content">
-      <KoszykProduct v-for="product in koszyk.products" :key="product.id" :product="product" :list="products" />
-    </div>
-  </div>
+    <template v-else>
+      <router-link :to="{ name: 'menu' }" class="cart__menuLink">
+        If you want to eat something, add it to your basket first :)
+      </router-link>
+    </template>
+  </Page>
 
   <div v-if="showModal" class="modal">
     <div class="modal__buttons">
@@ -26,74 +31,81 @@
 
     <div class="modal__content">
       <div v-if="!option.length" class="modal__options">
-        <button @click="option = 'log'">Zaloguj się</button>
+        <button @click="option = 'log'">Login</button>
 
-        <button @click="option = 'reg'">Zarejestruj się</button>
+        <button @click="option = 'reg'">Register</button>
       </div>
 
       <form v-else-if="option === 'log'" class="modal__register" @submit="handleLogin">
         <div class="register__group">
-          <input type="text" placeholder="Nazwa" />
-          <input type="password" placeholder="Hasło" />
+          <input type="text" placeholder="Login" />
+          <input type="password" placeholder="Password" />
         </div>
 
-        <button type="submit">Zaloguj i zamów</button>
+        <button type="submit">Login and order</button>
       </form>
 
       <form v-else-if="option === 'reg'" class="modal__register" @submit="handleFormSubmit">
         <div class="register__group">
-          <input type="text" placeholder="Nazwa" />
-          <input type="password" placeholder="Hasło" />
+          <input type="text" placeholder="Login" />
+          <input type="password" placeholder="Password" />
         </div>
 
         <div class="register__group">
-          <input type="text" placeholder="Imię" />
-          <input type="text" placeholder="Nazwisko" />
+          <input type="text" placeholder="First name" />
+          <input type="text" placeholder="Lastname" />
         </div>
 
         <div class="register__group">
-          <input type="text" placeholder="Kraj" />
-          <input type="text" placeholder="Miasto" />
+          <input type="text" placeholder="Country" />
+          <input type="text" placeholder="City" />
         </div>
 
         <div class="register__group">
-          <input type="text" placeholder="Ulica" />
-          <input type="text" placeholder="Nr. mieszkania/domu" />
+          <input type="text" placeholder="Street" />
+          <input type="text" placeholder="House number" />
         </div>
 
         <div class="register__group">
-          <input type="text" placeholder="Telefon" />
+          <input type="text" placeholder="Phone" />
           <input type="text" placeholder="E-mail" />
         </div>
 
-        <button type="submit">Zarejestruj i zamów</button>
+        <button type="submit">Register and order</button>
       </form>
     </div>
   </div>
 </template>
 
 <script setup>
-import KoszykProduct from "../components/KoszykProduct";
-import axios from "axios";
-import { computed, onMounted, ref } from "vue";
-import { useStore } from "vuex";
-import { API_URL } from "@/config";
+import CartProduct from '@/components/CartProduct.vue'
+import Header1 from '@/components/Header1.vue'
+import Page from '@/components/Page.vue'
+import SubHeader from '@/components/SubHeader.vue'
+import { ApiRequest } from "@/config"
+import { computed, onMounted, ref } from "vue"
+import { useStore } from "vuex"
 
 const store = useStore();
-const koszyk = computed(() => store.getters.getKoszyk);
+const cart = computed(() => store.getters.getCart);
 const products = ref([]);
 const customers = ref([]);
 const showModal = ref(false);
 const option = ref("");
 
-const goModalVisible = () => {
+const setModalVisible = () => {
   showModal.value = true;
 };
 
-const zamow = (customerId) => {
-  store.dispatch("setCustomer", customerId);
-  store.dispatch("zamow");
+const setModalHidden = () => {
   showModal.value = false;
+};
+
+const order = (customerId) => {
+  store.dispatch("setCustomer", customerId);
+  store.dispatch("order");
+
+  setModalHidden()
 };
 
 const handleLogin = async (e) => {
@@ -106,25 +118,23 @@ const handleLogin = async (e) => {
 
   const ok = Object.values(data).every(value => value);
 
-  if (ok) {
-    try {
-      const response = await axios.post(API_URL + "login", data);
+  if (!ok) return alert('Fill every input!');
 
-      e.target.reset();
+  try {
+    const response = await ApiRequest.post('customers/login', data);
 
-      if (response.data.success) {
-        zamow(response.data.customerId);
-        option.value = "";
-      } else {
-        alert('Błędne dane logowania');
-      }
-    } catch (e) {
-      alert("Nie udało się zalogować, spróbuj ponownie poźniej");
+    e.target.reset();
+
+    if (response.data.success) {
+      order(response.data.customerId);
+      option.value = "";
+    } else {
+      alert('Wrong credentials');
     }
-  } else {
-    alert('Uzupełnij wszystkie pola!');
+  } catch (error) {
+    console.error(error)
+    alert(error.response.data.message);
   }
-
 }
 
 const handleFormSubmit = async (e) => {
@@ -145,30 +155,43 @@ const handleFormSubmit = async (e) => {
 
   const ok = Object.values(data).every(value => value);
 
-  if (ok) {
-    try {
-      const response = await axios.post(API_URL + "customers", data);
-      e.target.reset();
-      zamow(response.data.id);
+  if (!ok) return alert('Fill every input!');
+
+  try {
+    const response = await ApiRequest.post('customers/register', data);
+
+    e.target.reset();
+
+    if (response.data.id) {
+      order(response.data.id);
       option.value = "";
-    } catch (e) {
-      alert("Nie udało się zarejestrować, spróbuj ponownie poźniej");
+    } else {
+      alert("Something goes wrong, try again later");
     }
-  } else {
-    alert('Uzupełnij wszystkie pola!');
+  } catch (error) {
+    console.error(error)
+    alert("Something goes wrong, try again later");
   }
 };
 
 const getProducts = async () => {
-  const { data } = await axios.get(API_URL + "products");
-
-  products.value = data;
+  try {
+    const { data } = await ApiRequest.get('products');
+    products.value = data;
+  } catch (error) {
+    console.error(error)
+    alert(error.message)
+  }
 };
 
 const getCustomers = async () => {
-  const response = await axios.get(API_URL + "customers");
-  const { data } = await response;
-  customers.value = data;
+  try {
+    const { data } = await ApiRequest.get('customers');
+    customers.value = data;
+  } catch (error) {
+    console.error(error)
+    alert(error.message)
+  }
 };
 
 onMounted(() => {
@@ -178,31 +201,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.koszyk {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  row-gap: 20px;
-}
-
-@media only screen and (min-width: 768px) {
-  .koszyk {
-    margin: 0 20px;
-  }
-}
-
-.koszyk__header {
-  text-align: center;
-  text-transform: uppercase;
-}
-
-.koszyk__subHeader {
-  color: #f59705;
-  font-size: 18px;
-  text-align: center;
-}
-
-.koszyk__zamowButton {
+.cart__zamowButton {
   outline: none;
   border: none;
   border-radius: 5px;
@@ -216,18 +215,18 @@ onMounted(() => {
 }
 
 @media only screen and (min-width: 480px) {
-  .koszyk__zamowButton {
+  .cart__zamowButton {
     width: 300px;
     margin: 0 auto;
   }
 }
 
-.koszyk__zamowButton:hover {
+.cart__zamowButton:hover {
   color: #eee;
   background: #f59705;
 }
 
-.koszyk__menuLink {
+.cart__menuLink {
   margin: 20px auto;
   font-size: 18px;
   font-weight: bold;
@@ -236,11 +235,11 @@ onMounted(() => {
   transition: all 0.2s ease-in-out;
 }
 
-.koszyk__menuLink:hover {
+.cart__menuLink:hover {
   filter: brightness(1.5);
 }
 
-.koszyk__content {
+.cart__content {
   display: flex;
   flex-direction: column;
   row-gap: 20px;

@@ -1,8 +1,6 @@
-import axios from "axios";
-import { API_URL } from '../../config';
+import { ApiRequest } from '../../config';
 
-
-export const koszyk = {
+export const cart = {
   state: () => ({
     customer_id: 1,
     products: [
@@ -12,7 +10,7 @@ export const koszyk = {
     ]
   }),
   getters: {
-    getKoszyk: (state) => state
+    getCart: (state) => state
   },
   mutations: {
     addToCart: (state, payload) => {
@@ -28,7 +26,7 @@ export const koszyk = {
         });
       }
 
-      alert('Dodano do koszyka 🛒');
+      alert('Added to your cart 🛒');
     },
     removeFromCart: (state, payload) => {
       state.products = state.products.filter(p => p.product_id !== payload);
@@ -44,7 +42,7 @@ export const koszyk = {
     setCustomer: (state, payload) => {
       state.customer_id = payload;
     },
-    zamow: (state) => {
+    order: (state) => {
       state.customer_id = 1;
       state.products = [];
     }
@@ -62,13 +60,14 @@ export const koszyk = {
     setCustomer: (context, payload) => {
       context.commit('setCustomer', payload);
     },
-    zamow: async (context) => {
+    order: async (context) => {
       try {
-        const response = await axios.post(API_URL + 'orders', context.state);
-        context.commit('zamow', response.data);
-        alert('Zamówiono 🍔🍟');
-      } catch (e) {
-        alert('Nie udało się złożyc zamówienia 😥');
+        const response = await ApiRequest.post('orders', context.state);
+        context.commit('order', response.data);
+        alert('Order placed 🍔🍟');
+      } catch (error) {
+        console.error(error)
+        alert('Failed to place order 😥');
       }
     }
   }
